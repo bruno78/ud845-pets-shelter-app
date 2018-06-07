@@ -148,7 +148,7 @@ public class EditorActivity extends AppCompatActivity {
         String petName = mNameEditText.getText().toString();
         String petBreed = mBreedEditText.getText().toString();
         int petGender = mGender;
-        String petWeight = mWeightEditText.getText().toString();
+        int petWeight = Integer.parseInt(mWeightEditText.getText().toString());
 
         // Get an instance of PetDbHelper
         mPetDbHelper = new PetDbHelper(this);
@@ -168,7 +168,7 @@ public class EditorActivity extends AppCompatActivity {
             db.close();
         }
 
-        if(newRowId < 1) {
+        if(newRowId < 0) {
             Toast.makeText(EditorActivity.this,
                     "Error with saving Pet", Toast.LENGTH_LONG).show();
         }

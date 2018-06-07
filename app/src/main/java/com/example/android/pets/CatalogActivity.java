@@ -70,12 +70,46 @@ public class CatalogActivity extends AppCompatActivity {
 
         // Perform this raw SQL query "SELECT * FROM pets"
         // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
+        // Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
+        String[] columns = {
+                PetEntry._ID,
+                PetEntry.COLUMN_NAME,
+                PetEntry.COLUMN_BREED,
+                PetEntry.COLUMN_GENDER,
+                PetEntry.COLUMN_WEIGHT
+        };
+        Cursor cursor  = db.query(
+                PetEntry.TABLE_NAME,
+                columns, null, null, null, null, null);
+
+        TextView displayView = (TextView) findViewById(R.id.text_view_pet);
+
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            displayView.setText("The pets table contains: " + cursor.getCount() + " pets. \n\n");
+            displayView.append(PetEntry._ID + " - " + PetEntry.COLUMN_NAME + " - " +
+                    PetEntry.COLUMN_GENDER + " - " + PetEntry.COLUMN_BREED + " - " + PetEntry.COLUMN_WEIGHT + "\n\n");
+
+            // Figure out the index of each column
+            int idColumnIndex = cursor.getColumnIndex(PetEntry._ID);
+            int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_NAME);
+            int genderColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_GENDER);
+            int breedColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_BREED);
+            int weightColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_WEIGHT);
+
+            while(cursor.moveToNext()) {
+
+                String id = Integer.toString(cursor.getInt(idColumnIndex));
+                String name = cursor.getString(nameColumnIndex);
+                String gender = cursor.getString(genderColumnIndex);
+                String breed = cursor.getString(breedColumnIndex);
+                String weight = Integer.toString(cursor.getInt(weightColumnIndex));
+
+                displayView.append(id + " - " + name + " - " + gender + " - " + breed + " - " + weight + "\n");
+
+            }
+
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
