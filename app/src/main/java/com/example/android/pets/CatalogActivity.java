@@ -19,6 +19,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,9 @@ import android.widget.TextView;
 
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetContract.PetEntry;
+import com.example.android.pets.data.PetProvider;
+
+import static com.example.android.pets.data.PetContract.BASE_CONTENT_URI;
 
 /**
  * Displays list of pets that were entered and stored in the app.
@@ -61,26 +65,26 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         // Perform this raw SQL query "SELECT * FROM pets"
         // to get a Cursor that contains all rows from the pets table.
         // Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
-        String[] columns = {
+        String[] projection = {
                 PetEntry._ID,
                 PetEntry.COLUMN_NAME,
                 PetEntry.COLUMN_BREED,
                 PetEntry.COLUMN_GENDER,
                 PetEntry.COLUMN_WEIGHT
         };
-        Cursor cursor  = db.query(
-                PetEntry.TABLE_NAME,
-                columns, null, null, null, null, null);
+
+        // Peform a query on the provider using the ContentResolver
+        // Use the @link{PetEntry#CONTENT_URI} to access the pet data.
+        Cursor cursor = getContentResolver().query(
+                PetEntry.CONTENT_URI,  // The content URI of the words table
+                projection,            // The columns to return for each row
+                null,         // Selection criteria
+                null,      // Selection criteria
+                null);        // The sort order for the returned rows
 
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
 

@@ -1,9 +1,11 @@
 package com.example.android.pets.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -42,8 +44,32 @@ public class PetProvider extends ContentProvider {
      */
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] strings, @Nullable String s, @Nullable String[] strings1, @Nullable String s1) {
-        return null;
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+
+        SQLiteDatabase database = mDbHelper.getReadableDatabase();
+
+        Cursor cursor;
+
+        int match = sUriMatcher.match(uri);
+
+        switch(match) {
+            case PETS:
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME,
+                        projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            case PET_ID:
+                selection = PetContract.PetEntry._ID + "=?";
+                // this will take the ID from the uri /pets/5 and will convert into a number and then into a string.
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder);
+                break;
+            default:
+                throw  new IllegalArgumentException("Cannot query unknown URI " + uri);
+
+        }
+        return cursor;
     }
 
     /**
