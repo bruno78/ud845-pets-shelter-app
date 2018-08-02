@@ -57,6 +57,11 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         displayDatabaseInfo();
     }
 
@@ -137,7 +142,7 @@ public class CatalogActivity extends AppCompatActivity {
             case R.id.action_insert_dummy_data:
                 // Do nothing for now
                 // inserDummyData();
-                inserPet();
+                insertPet();
                 displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
@@ -168,7 +173,7 @@ public class CatalogActivity extends AppCompatActivity {
 //        Log.v("CatalogActivtiy", "New row ID " + newRowId);
 //    }
 
-    private void inserPet() {
+    private void insertPet() {
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_NAME, "Toto");
