@@ -15,8 +15,11 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -144,17 +147,11 @@ public class EditorActivity extends AppCompatActivity {
     }
 
     private void savePetEntry(){
-        long newRowId;
+
         String petName = mNameEditText.getText().toString();
         String petBreed = mBreedEditText.getText().toString();
         int petGender = mGender;
         int petWeight = Integer.parseInt(mWeightEditText.getText().toString());
-
-        // Get an instance of PetDbHelper
-        mPetDbHelper = new PetDbHelper(this);
-
-        // Get data repository in write mode
-        SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_NAME, petName);
@@ -162,19 +159,15 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_GENDER, petGender);
         values.put(PetEntry.COLUMN_WEIGHT, petWeight);
 
-        try {
-            newRowId = db.insertOrThrow(PetEntry.TABLE_NAME, null, values);
-        } finally {
-            db.close();
-        }
+        Uri petUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
-        if(newRowId < 0) {
+        if(petUri == null) {
             Toast.makeText(EditorActivity.this,
-                    "Error with saving Pet", Toast.LENGTH_LONG).show();
+                    R.string.error_saving_pet, Toast.LENGTH_LONG).show();
         }
         else {
             Toast.makeText(EditorActivity.this,
-                    "Pet saved with Id: " + newRowId, Toast.LENGTH_LONG).show();
+                    R.string.saving_pet, Toast.LENGTH_LONG).show();
         }
 
     }
