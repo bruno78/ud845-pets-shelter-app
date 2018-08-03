@@ -221,7 +221,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
 
         int petWeight = 0;
-        if(TextUtils.isEmpty(petWeightString)) {
+        if(!TextUtils.isEmpty(petWeightString)) {
             petWeight = Integer.parseInt(petWeightString);
         }
 
@@ -307,7 +307,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                     mGenderSpinner.setSelection(0);
                     break;
             }
-
         }
     }
 

@@ -15,10 +15,12 @@
  */
 package com.example.android.pets;
 
+import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -32,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetContract.PetEntry;
@@ -105,7 +108,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 // Do nothing for now
-                deleteAllEntries();
+                showDeleteAllEntriesConfirmationDialog();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -125,13 +128,17 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
 
     private void deleteAllEntries() {
-        // Get an instance of PetDbHelper
-        mPetDbHelper = new PetDbHelper(this);
 
-        // Get data repository in write mode
-        SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
-        db.execSQL("DELETE FROM "+ PetEntry.TABLE_NAME);
-        db.close();
+        int rowsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null,null);
+
+        if(rowsDeleted > 0) {
+            Toast.makeText(this, "Total of entries deleted: " + rowsDeleted, Toast.LENGTH_SHORT);
+        }
+        else {
+            Toast.makeText(this, "Unable to delete!", Toast.LENGTH_SHORT);
+        }
+
+
     }
 
     @Override
@@ -160,5 +167,34 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mAdapter.swapCursor(null);
+    }
+
+    private void showDeleteAllEntriesConfirmationDialog() {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the positive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.delete_dialog_msg);
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // User clicked "Delete" button, so delete the pet.
+                deleteAllEntries();
+            }
+        });
+
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // User clicked the "Cancel" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialogInterface != null) {
+                    dialogInterface.dismiss();
+                }
+            }
+        });
+
+        // Create and show the Alertdialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }
