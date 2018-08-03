@@ -176,7 +176,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
-                // Do nothing for now
+                showDeleteConfirmationDialog();
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
@@ -319,6 +319,29 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mWeightEditText.setText("");
     }
 
+    @Override
+    public void onBackPressed() {
+        // If the pet hasn't changed, continue with handling back button press;
+        if (!mPetHaschanged) {
+            super.onBackPressed();
+            return;
+        }
+
+        // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+        // Create a click listener to handle the user confirming that changes should be discarded.
+        DialogInterface.OnClickListener discardButtonClickListener =
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // User clicked "Discard" button, close the current activity.
+                        finish();
+                    }
+                };
+
+        // Show dialog that there are unsaved changes
+        showUnsavedChangesDialog(discardButtonClickListener);
+    }
+
     // Method for creating a "Discard changes" dialog
     private void showUnsavedChangesDialog( DialogInterface.OnClickListener discardButtonClickListener) {
 
@@ -345,26 +368,53 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     }
 
-    @Override
-    public void onBackPressed() {
-        // If the pet hasn't changed, continue with handling back button press;
-        if (!mPetHaschanged) {
-            super.onBackPressed();
-            return;
+    private void showDeleteConfirmationDialog() {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the positive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.delete_dialog_msg);
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // User clicked "Delete" button, so delete the pet.
+                deletePet();
+            }
+        });
+
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // User clicked the "Cancel" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialogInterface != null) {
+                    dialogInterface.dismiss();
+                }
+            }
+        });
+
+        // Create and show the Alertdialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    /**
+     * Perform the deletion of the pet in the database
+     */
+    private void deletePet() {
+
+        int rowsDeleted = 0;
+        if (mCurrentPetUri != null) {
+            rowsDeleted = getContentResolver().delete(mCurrentPetUri, null, null);
         }
 
-        // Otherwise if there are unsaved changes, setup a dialog to warn the user.
-        // Create a click listener to handle the user confirming that changes should be discarded.
-        DialogInterface.OnClickListener discardButtonClickListener =
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        // User clicked "Discard" button, close the current activity.
-                        finish();
-                    }
-                };
+        if(rowsDeleted > 0) {
+            Toast.makeText(this, R.string.delete_successful, Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        else {
+            Toast.makeText(this, R.string.delete_fail, Toast.LENGTH_SHORT).show();
+        }
 
-        // Show dialog that there are unsaved changes
-        showUnsavedChangesDialog(discardButtonClickListener);
     }
+
 }
