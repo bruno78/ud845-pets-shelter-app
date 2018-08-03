@@ -15,33 +15,38 @@
  */
 package com.example.android.pets;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.TextView;
+
 
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetContract.PetEntry;
-import com.example.android.pets.data.PetProvider;
 
 import static com.example.android.pets.data.PetContract.BASE_CONTENT_URI;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final int PET_LOADER = 0;
 
     private PetDbHelper mPetDbHelper;
+    private PetCursorAdapter mAdapter;
+    private ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,47 +62,14 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        displayDatabaseInfo();
-    }
-
-    /**
-     * Temporary helper method to display information in the onscreen of the TextView about the state of
-     * the pets database
-     */
-    private void displayDatabaseInfo() {
-
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        // Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
-        String[] projection = {
-                PetEntry._ID,
-                PetEntry.COLUMN_NAME,
-                PetEntry.COLUMN_BREED,
-                PetEntry.COLUMN_GENDER,
-                PetEntry.COLUMN_WEIGHT
-        };
-
-        // Peform a query on the provider using the ContentResolver
-        // Use the @link{PetEntry#CONTENT_URI} to access the pet data.
-        Cursor cursor = getContentResolver().query(
-                PetEntry.CONTENT_URI,  // The content URI of the words table
-                projection,            // The columns to return for each row
-                null,         // Selection criteria
-                null,      // Selection criteria
-                null);        // The sort order for the returned rows
-
-        ListView listView = (ListView) findViewById(R.id.list_view_pet);
+        mListView = (ListView) findViewById(R.id.list_view_pet);
         View emptyTextView = findViewById(R.id.empty_view);
-        listView.setEmptyView(emptyTextView);
+        mListView.setEmptyView(emptyTextView);
+        mAdapter = new PetCursorAdapter(this, null);
+        mListView.setAdapter(mAdapter);
 
-        PetCursorAdapter adapter = new PetCursorAdapter(this, cursor);
-        listView.setAdapter(adapter);
-
+        getLoaderManager().initLoader(PET_LOADER, null, this);
     }
 
     @Override
@@ -117,13 +89,11 @@ public class CatalogActivity extends AppCompatActivity {
                 // Do nothing for now
                 // inserDummyData();
                 insertPet();
-                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 // Do nothing for now
                 deleteAllEntries();
-                displayDatabaseInfo();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -150,5 +120,33 @@ public class CatalogActivity extends AppCompatActivity {
         SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
         db.execSQL("DELETE FROM "+ PetEntry.TABLE_NAME);
         db.close();
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+
+        // Define a projection that specifies the columns from the table we care about.
+        String[] projection = {
+                PetEntry._ID,
+                PetEntry.COLUMN_NAME,
+                PetEntry.COLUMN_BREED
+        };
+
+        return new CursorLoader(this,
+                PetEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        mAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.swapCursor(null);
     }
 }
