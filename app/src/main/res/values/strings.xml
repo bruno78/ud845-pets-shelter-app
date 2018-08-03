@@ -66,4 +66,7 @@
     <string name="add_pet">Add Pet</string>
     <string name="updating_pet">Pet Successfully Updated!</string>
     <string name="error_updating_pet">Unable to Update Pet</string>
+    <string name="unsaved_changes_dialog_msg">Discard your changes and quit editing?</string>
+    <string name="discard">Discard</string>
+    <string name="keep_editing">Keep Editing</string>
 </resources>
