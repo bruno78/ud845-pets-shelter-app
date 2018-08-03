@@ -60,4 +60,6 @@
     <string name="gender_female">Female</string>
     <string name="error_saving_pet">Error with saving Pet</string>
     <string name="saving_pet">Pet saved!</string>
+    <string name="empty_view_title_text">It\'s a bit lonely here...</string>
+    <string name="empty_view_subtitle_text">Get started by adding a pet</string>
 </resources>
