@@ -71,6 +71,13 @@ public class PetProvider extends ContentProvider {
                 throw  new IllegalArgumentException("Cannot query unknown URI " + uri);
 
         }
+
+        // Set notification URI on the Cursor,
+        // so we know what content URI the Cursor was created for.
+        // If the data at this URI changes, then we know we need to update the cursor.
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+        // Return the cursor
         return cursor;
     }
 
@@ -135,6 +142,11 @@ public class PetProvider extends ContentProvider {
                 Log.e(LOG_TAG, "Failed to insert row for " + uri);
                 return null;
             }
+
+            // Notify all listeners that the data has change for the pet content URI
+            getContext().getContentResolver().notifyChange(uri, null);
+
+            // Return the new URI with the ID of the newly inserted row appended at the end.
             return ContentUris.withAppendedId(uri, id);
         }
         finally {
@@ -152,17 +164,17 @@ public class PetProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case PETS:
-                return updatePet(contentValues, selection, selectionArgs);
+                return updatePet(uri, contentValues, selection, selectionArgs);
             case PET_ID:
                 selection = PetContract.PetEntry._ID + "=?";
                 selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
-                return updatePet(contentValues, selection, selectionArgs);
+                return updatePet(uri, contentValues, selection, selectionArgs);
             default:
                 throw  new IllegalArgumentException("Update is not supported for " + uri);
         }
     }
 
-    private int updatePet(ContentValues contentValues, String selection, String[] selectionArgs) {
+    private int updatePet(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
 
         if (contentValues.size() == 0) {
             return 0;
@@ -190,7 +202,14 @@ public class PetProvider extends ContentProvider {
         }
 
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        return db.update(PetContract.PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
+        int rowsUpdated = db.update(PetContract.PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
+
+        if (rowsUpdated != 0) {
+            // Notify all listeners that the data has change for the pet content URI
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return rowsUpdated;
     }
 
 
@@ -201,21 +220,33 @@ public class PetProvider extends ContentProvider {
     public int delete(@NonNull Uri uri, @Nullable String selection,
                       @Nullable String[] selectionArgs) {
 
-        // Get Writeable database
-        SQLiteDatabase database = mDbHelper.getReadableDatabase();
-
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case PETS:
-                // Delete all rows that match the selection and selection args
-                return database.delete(PetContract.PetEntry.TABLE_NAME, selection, selectionArgs);
+                return deletePet(uri, selection, selectionArgs);
             case PET_ID:
                 // Delete a single row given by the ID in the URI
                 selection = PetContract.PetEntry._ID + "=?";
                 selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
-                return database.delete(PetContract.PetEntry.TABLE_NAME, selection, selectionArgs);
+                return deletePet(uri, selection, selectionArgs);
             default:
                 throw  new IllegalArgumentException("Deletion is not suported for " + uri);
         }
+    }
+
+    private int deletePet(Uri uri, String selection, String[] selectionArgs) {
+
+        // Get Writeable database
+        SQLiteDatabase database = mDbHelper.getReadableDatabase();
+
+        // Delete all rows that match the selection and selection args
+        int rowsDeleted =  database.delete(PetContract.PetEntry.TABLE_NAME, selection, selectionArgs);
+
+        if (rowsDeleted != 0) {
+            // Notify all listeners that the data has change for the pet content URI
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return rowsDeleted;
     }
 }
