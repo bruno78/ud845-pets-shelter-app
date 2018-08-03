@@ -62,4 +62,8 @@
     <string name="saving_pet">Pet saved!</string>
     <string name="empty_view_title_text">It\'s a bit lonely here...</string>
     <string name="empty_view_subtitle_text">Get started by adding a pet</string>
+    <string name="edit_pet">Edit Pet</string>
+    <string name="add_pet">Add Pet</string>
+    <string name="updating_pet">Pet Successfully Updated!</string>
+    <string name="error_updating_pet">Unable to Update Pet</string>
 </resources>
